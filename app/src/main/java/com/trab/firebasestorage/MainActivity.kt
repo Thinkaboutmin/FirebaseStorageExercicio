@@ -13,7 +13,7 @@ import dmax.dialog.SpotsDialog
 
 class MainActivity : AppCompatActivity() {
     private val imgCODE = 0xFF
-    private val imgType = "image/"
+    private val imgType = "image/*"
 
     private val binding: ActivityMainBinding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
@@ -23,22 +23,27 @@ class MainActivity : AppCompatActivity() {
         SpotsDialog.Builder().setContext(this).build()
     }
 
-    val firebaseStorage by lazy<StorageReference> {
-        FirebaseStorage.getInstance().reference
+    val firebaseStorage by lazy<FirebaseStorage> {
+        FirebaseStorage.getInstance()
     }
 
     fun pickImgIntent() {
         val intent = Intent()
         intent.type = imgType
         intent.action = Intent.ACTION_GET_CONTENT
-        startActivityForResult(intent, imgCODE)
+        startActivityForResult(Intent.createChooser(intent, "Capture image"), imgCODE)
     }
 
     fun uploadImg(data: Intent) {
         alertDialog.show()
-        val task = firebaseStorage.putFile(data!!.data!!)
+        val task = firebaseStorage.getReference("image.jpg").putFile(data!!.data!!)
         task.addOnSuccessListener {
-            Log.d("A", "AA")
+            firebaseStorage.getReference("image.jpg").downloadUrl.addOnSuccessListener {
+                Picasso.get().load(it.toString()).into(
+                    binding.imgSent
+                )
+            }
+
         }
 
         alertDialog.dismiss()
